@@ -8,16 +8,13 @@ const injectString = require('gulp-inject-string');
 const argv = require('yargs').argv;
 const fs = require('fs');
 const map = require('map-stream');
+const replace = require('gulp-replace');
 
 const components = [];
 const basePath = '../';
 
 if (argv.dirPaths !== undefined) {
-	if (typeof argv.dirPaths === 'string') {
-		addComponent(argv.dirPaths);
-	} else {
-		argv.dirPaths.forEach(dirPath => addComponent(dirPath));
-	}
+	argv.dirPaths.split(',').forEach(dirPath => addComponent(dirPath));
 }
 
 function addComponent(dirPath) {
@@ -41,6 +38,7 @@ function addComponent(dirPath) {
 		console.log('SCSS', scssFile);
 		console.log('TS', tsFile);
 	}
+	console.log('Root', argv.root);
 }
 
 function getSCSSFiles() {
@@ -65,7 +63,8 @@ gulp.task('copy', ['inject:js'], function() {
 */
 gulp.task('inject:js', function() {
 	return gulp.src('../src/index.html')
-            .pipe(injectString.before('</body', '<!-- inject:js --><!-- endinject -->'))
+			.pipe(replace(/<!-- inject:js -->.*<!-- endinject -->/, ''))
+            .pipe(replace('</body>', '<!-- inject:js --><!-- endinject --></body>'))
 			.pipe(
 				inject(
 					gulp.src('./livesass.js', {read: false})
@@ -80,7 +79,8 @@ gulp.task('inject:js', function() {
 */
 gulp.task('inject:css', ['compile'], function() {
 	return gulp.src('../src/index.html')
-            .pipe(injectString.before('</head', '<!-- inject:css --><!-- endinject -->'))
+            .pipe(replace(/<!-- inject:css -->.*<!-- endinject -->/, ''))
+            .pipe(replace('</head>', '<!-- inject:css --><!-- endinject --></head>'))
 			.pipe(
 				inject(
 					gulp.src('../src/assets/livesass/*.css', {read: false})
@@ -95,7 +95,7 @@ gulp.task('addselectors', ['copy'], function() {
 	return gulp.src(getTSFiles())
 		.pipe(map(function(file, callback) {
 			var match = file.contents.toString().match(/selector: '(.*)',/i);
-			fs.appendFileSync(scriptFile, 'addSelector(\'' + match[1] + '\');\n');
+			fs.appendFileSync(scriptFile, 'lvs_addSelector(\'' + match[1] + '\');\n');
 			callback();
 		}));
 });
@@ -106,7 +106,7 @@ gulp.task('addselectors', ['copy'], function() {
 */
 gulp.task('livesass', ['addselectors', 'inject:css'], function() {
 	return gulp.src('../src/assets/livesass/livesass.js')
-				.pipe(injectString.append('livesass();'))
+				.pipe(injectString.append('lvs_livesass();'))
 				.pipe(gulp.dest('../src/assets/livesass/'));
 });
 

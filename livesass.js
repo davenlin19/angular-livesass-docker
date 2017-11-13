@@ -1,24 +1,24 @@
-const selectors = [];
+const lvs_selectors = [];
 
 /**
  * Add new selector to selectors array
  * @param {string} selector: the new selector
 **/
-function addSelector(selector) {
-    selectors.push(selector);
+function lvs_addSelector(selector) {
+    lvs_selectors.push(selector);
 }
 
 /**
  * Set up an interval that find the corresponding component by selector
- * When we found a component, call removeStyle function to remove its style from
+ * When we found a component, call lvs_removeStyle function to remove its style from
  * in head
  * When all components' style have been removed, remove the interval
 **/
-function livesass() {
-    if (selectors.length > 0) {
+function lvs_livesass() {
+    if (lvs_selectors.length > 0) {
         var interval = setInterval(function () {
             compToRemoves = [];
-            for (const selector of selectors) {
+            for (const selector of lvs_selectors) {
                 var component = document.querySelector(selector);
                 if (component !== null) {
                     compToRemoves.push({
@@ -28,10 +28,10 @@ function livesass() {
                 }
             }
             for (const comp of compToRemoves) {
-                removeStyle(comp.component);
-                selectors.splice(selectors.indexOf(comp.selector), 1);
+                lvs_removeStyle(comp.component);
+                lvs_selectors.splice(lvs_selectors.indexOf(comp.selector), 1);
             }
-            if (selectors.length === 0) {
+            if (lvs_selectors.length === 0) {
                 clearInterval(interval);
             }
         }, 1000);
@@ -43,7 +43,7 @@ function livesass() {
  * Find the styles that use this attribute and remove them from head tag
  * @param {object} component
 **/
-function removeStyle(component) {
+function lvs_removeStyle(component) {
     var encapsulationAttr = component.getAttributeNames().find(function (attr) {
         return attr.indexOf("_nghost") === 0;
     });
